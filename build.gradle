@@ -14,3 +14,9 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
     compile("net.dv8tion:JDA:4.2.0_168")
 }
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
