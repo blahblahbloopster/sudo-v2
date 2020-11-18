@@ -6,6 +6,7 @@ object Points {
     private const val messageSendXp = 5
 
     fun messageSent(author: User, channel: TextChannel) {
+        if (author == Main.jda.selfUser) return
         val startLevel = getLevel(author.id).toInt()
         DB.incrementPoints(author.id, messageSendXp)
         val endLevel = getLevel(author.id).toInt()
@@ -24,7 +25,7 @@ object Points {
         return xp.toDouble().pow(0.25)
     }
 
-    fun widthOfLevel(level: Int): Double {
-
+    fun levelToXp(level: Double): Int {
+        return level.pow(4).toInt()
     }
 }

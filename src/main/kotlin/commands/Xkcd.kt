@@ -74,7 +74,7 @@ class Xkcd : Command() {
         embed.setTimestamp(calendar.toInstant())
         embed.setImage(comic.img)
         embed.setFooter(comic.alt)
-        embed.setColor(Color.getHSBColor(Random().nextFloat(), 0.8f, 0.8f))
+        embed.setColor(Color.getHSBColor(Random(comic.num.toLong()).nextFloat(), 0.8f, 0.8f))
         return EmbedResponse(embed)
     }
 }

@@ -1,5 +1,6 @@
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
+import kotlin.math.max
 
 object DB {
     init {
@@ -39,7 +40,7 @@ object DB {
                 }
             }
             Users.update({ Users.id eq id}) {
-                it[Users.points] = points
+                it[Users.points] = max(points, 0)
             }
         }
     }
@@ -53,7 +54,7 @@ object DB {
     }
 
     fun incrementPoints(id: String, diff: Int): Int {
-        val points = getPoints(id) + diff
+        val points = max(getPoints(id) + diff, 0)
         setPoints(id, points)
         return points
     }
