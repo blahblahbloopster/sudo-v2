@@ -23,7 +23,7 @@ class MessageListener : ListenerAdapter() {
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
         if (event.channel is TextChannel) {
-            handler.process(event.message.contentRaw, ";").send(event.channel as TextChannel)
+            handler.process(event.message, ";").send(event.channel as TextChannel)
         }
     }
 }

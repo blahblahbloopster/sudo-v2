@@ -1,7 +1,9 @@
-abstract class Command {
-    private val name = ""
+import net.dv8tion.jda.api.entities.Message
 
-    abstract fun process(args: List<String>): Sendable
+abstract class Command {
+    abstract val name: String
+
+    abstract fun process(args: List<String>, message: Message): Sendable
 
     fun matches(inp: String): Boolean {
         return inp.startsWith(name)
