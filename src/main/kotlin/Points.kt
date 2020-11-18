@@ -23,4 +23,8 @@ object Points {
     fun xpToLevel(xp: Int): Double {
         return xp.toDouble().pow(0.25)
     }
+
+    fun widthOfLevel(level: Int): Double {
+
+    }
 }
