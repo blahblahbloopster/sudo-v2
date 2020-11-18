@@ -1,4 +1,5 @@
 import commands.Help
+import commands.Level
 import commands.Ping
 import commands.Xkcd
 import net.dv8tion.jda.api.JDA
@@ -16,6 +17,7 @@ object Main {
         handler.commands.add(Help())
         handler.commands.add(Ping())
         handler.commands.add(Xkcd())
+        handler.commands.add(Level())
         val token = File("token").readText()
         val builder = JDABuilder.createDefault(token)
         builder.setActivity(Activity.watching("for sudo help"))
@@ -28,6 +30,7 @@ object Main {
         override fun onMessageReceived(event: MessageReceivedEvent) {
             if (event.channel is TextChannel) {
                 handler.process(event.message, ";").send(event.channel as TextChannel)
+                Points.messageSent(event.author, event.channel as TextChannel)
             }
         }
     }
