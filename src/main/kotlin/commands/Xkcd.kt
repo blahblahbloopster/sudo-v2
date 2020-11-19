@@ -18,6 +18,7 @@ import java.net.URL
 import java.time.LocalDate
 import java.time.temporal.TemporalAccessor
 import java.util.*
+import kotlin.random.Random
 
 class Xkcd : Command() {
     override val name = "xkcd"
@@ -74,7 +75,7 @@ class Xkcd : Command() {
         embed.setTimestamp(calendar.toInstant())
         embed.setImage(comic.img)
         embed.setFooter(comic.alt)
-        embed.setColor(Color.getHSBColor(Random(comic.num.toLong()).nextFloat(), 0.8f, 0.8f))
+        embed.setColor(Color.getHSBColor(Random(comic.title.hashCode()).nextFloat(), 0.8f, 0.8f))
         return EmbedResponse(embed)
     }
 }

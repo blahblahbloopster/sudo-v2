@@ -5,6 +5,7 @@ class CommandHandler {
     val commands = mutableListOf<Command>()
 
     fun process(input: Message, prefix: String): Sendable {
+        if (prefix == "") return NullResponse()
         val messageText = input.contentRaw
         if (!messageText.startsWith(prefix)) {
             return NullResponse()
@@ -17,6 +18,8 @@ class CommandHandler {
         try {
             return command.process(args, input)
         } catch (error: Exception) {
+            println(input)
+            error.printStackTrace()
             return ErrorResponse(error.stackTraceToString())
         }
     }

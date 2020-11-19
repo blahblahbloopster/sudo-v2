@@ -6,6 +6,7 @@ import Sendable
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.Message
 import kotlin.math.ceil
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 class Level : Command() {
@@ -16,15 +17,15 @@ class Level : Command() {
         val embed = EmbedBuilder()
         val width = 30
         val member = if (message.mentionedMembers.isNotEmpty()) message.mentionedMembers[0] else message.member!!
-        val level = Points.getLevel(member.id)
-        val xp = Points.levelToXp(level)
+        val level = DB.getLevel(member)
+        val xp = DB.levelToXp(level)
 
-        val endLevelXp = Points.levelToXp(ceil(level))
+        val endLevelXp = DB.levelToXp(ceil(level))
         val proportion = level - level.toInt()
         val bars = proportion * width
 
         val fullBars = (bars * 8).toInt() / 8
-        val partialBar = ((bars - fullBars) * 8).roundToInt()
+        val partialBar = min(((bars - fullBars) * 8).roundToInt(), 7)
 
         embed.addField("Level", level.toInt().toString(), true)
         embed.addField("Xp", "$xp / $endLevelXp", true)

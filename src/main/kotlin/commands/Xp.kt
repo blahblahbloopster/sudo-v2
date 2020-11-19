@@ -18,15 +18,15 @@ class Xp : Command() {
         if (args.size == 1) return TextResponse("Mention a user and and an amount of xp to grant")
         if (args.size == 2) return TextResponse("Mention a user and and an amount of xp to grant")
 
-        val xp = max(args.find { try { it.toInt(); true } catch (e: NumberFormatException) { false } }?.toInt() ?: return TextResponse("Specify an amount of xp to grant"), 0)
+        val xp = max(args.find { try { it.toLong(); true } catch (e: NumberFormatException) { false } }?.toLong() ?: return TextResponse("Specify an amount of xp to grant"), 0)
         val member = message.mentionedMembers.getOrNull(0) ?: return TextResponse("Mention a user")
 
         val newXp = if (args.contains("set")) {
-            DB.setPoints(member.id, xp)
+            DB.setPoints(member, xp)
             xp
         } else {
-            DB.incrementPoints(member.id, xp)
+            DB.incrementPoints(member, xp)
         }
-        return TextResponse("${member.effectiveName} is now level ${Points.getLevel(member.id)} with $newXp xp")
+        return TextResponse("${member.effectiveName} is now level ${DB.xpToLevel(newXp)} with $newXp xp")
     }
 }

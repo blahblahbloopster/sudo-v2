@@ -30,8 +30,8 @@ object Main {
 
         override fun onMessageReceived(event: MessageReceivedEvent) {
             if (event.channel is TextChannel) {
-                Points.messageSent(event.author, event.channel as TextChannel)
-                handler.process(event.message, ";").send(event.channel as TextChannel)
+                DB.messageSent(event.member!!, event.channel as TextChannel)
+                handler.process(event.message, DB.getPrefix(event.guild)).send(event.channel as TextChannel)
             }
         }
     }
