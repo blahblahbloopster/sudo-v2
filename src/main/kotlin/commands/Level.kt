@@ -12,6 +12,7 @@ import kotlin.math.roundToInt
 class Level : Command() {
     override val name = "level"
     private val chars = "▏▎▍▌▋▊▉█"
+    override val help = "Gets your (or a mentioned member)'s level"
 
     override fun process(args: List<String>, message: Message): Sendable {
         val embed = EmbedBuilder()

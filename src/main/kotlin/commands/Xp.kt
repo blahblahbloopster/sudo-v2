@@ -1,20 +1,22 @@
 package commands
 
-import Command
+import AdminCommand
 import NullResponse
 import Sendable
 import TextResponse
-import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Message
 import java.lang.NumberFormatException
 import kotlin.math.max
 
-class Xp : Command() {
-    override val name = "xp"
+class Xp : AdminCommand("xp") {
+    override val help = "`xp @person <amount>` to award xp (can be negative), and `xp set @person <amount>` to set xp"
 
     override fun process(args: List<String>, message: Message): Sendable {
+        val output = super.process(args, message)
+        if (output !is NullResponse) {
+            return output
+        }
         message.member ?: return NullResponse()
-        if (!(message.member!!.hasPermission(Permission.ADMINISTRATOR) || message.author.id == Main.applicationInfo.owner.id)) return TextResponse("Insufficient permissions")
         if (args.size == 1) return TextResponse("Mention a user and and an amount of xp to grant")
         if (args.size == 2) return TextResponse("Mention a user and and an amount of xp to grant")
 
@@ -27,6 +29,6 @@ class Xp : Command() {
         } else {
             DB.incrementPoints(member, xp)
         }
-        return TextResponse("${member.effectiveName} is now level ${DB.xpToLevel(newXp)} with $newXp xp")
+        return TextResponse("${member.effectiveName} is now level ${DB.xpToLevel(newXp).toInt()} with $newXp xp")
     }
 }

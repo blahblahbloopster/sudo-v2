@@ -10,6 +10,7 @@ import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.Message
 
 class Setting : AdminCommand("setting") {
+    override val help = "To list all settings: `setting`  To change a setting: `setting <name> <value>`"
 
     override fun process(args: List<String>, message: Message): Sendable {
         val output = super.process(args, message)

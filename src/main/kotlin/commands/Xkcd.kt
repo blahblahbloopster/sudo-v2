@@ -22,6 +22,7 @@ import kotlin.random.Random
 
 class Xkcd : Command() {
     override val name = "xkcd"
+    override val help = "Grabs an xkcd comic.  With no arguments a random one is picked, but a number may also be specified"
 
     private val client = OkHttpClient.Builder().followRedirects(false).followSslRedirects(false).build()
 
