@@ -1,15 +1,27 @@
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.TextChannel
-import net.dv8tion.jda.api.entities.User
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import kotlin.math.max
 import kotlin.math.pow
 
 object DB {
+    val settings = mutableListOf<ServerSetting<*>>()
     init {
+        val trueStrings = listOf("true", "1", "yes", "y")
+        val falseStrings = listOf("false", "0", "no", "n")
+        fun greaterThan(a: Int?, b: Int?): Boolean {
+            a ?: return false
+            b ?: return false
+            return a > b
+        }
         Database.connect("jdbc:sqlite:users.db")
+        settings.add(ServerSetting(Servers.hallOfFameEmoji, "hallOfFameEmoji", { inp, guild -> guild.getEmotesByName(inp, true).isNotEmpty() }, { inp, _ -> inp }))
+        settings.add(ServerSetting(Servers.hallOfFameThreshold, "hallOfFameThreshold", { inp, _ -> greaterThan(inp.toIntOrNull(), 0) }, { inp, _ -> inp.toInt() }))
+        settings.add(ServerSetting(Servers.hallOfFameEnabled, "hallOfFameEnabled", { inp, _ -> trueStrings.contains(inp.toLowerCase()) || falseStrings.contains(inp.toLowerCase()) }, { inp, _ -> trueStrings.contains(inp.toLowerCase()) }))
+        settings.add(ServerSetting(Servers.hallOfFameChannel, "hallOfFameChannel", { inp, guild -> guild.getTextChannelById(inp.replace("<#", "").replace(">", "")) != null }, { inp, _ -> inp.replace("<*", "").replace(">", "") }))
+        settings.add(ServerSetting(Servers.prefix, "prefix", { inp, _ -> inp.length < 5 }, { inp, _ -> inp }))
     }
 
     fun getPoints(member: Member): Long {
@@ -63,14 +75,42 @@ object DB {
     }
 
     fun getPrefix(guild: Guild): String {
-        var prefix = ""
+        return getField(Servers.prefix, guild)?: return "!"
+    }
+
+    fun getHallOfFameChannel(guild: Guild): TextChannel? {
+        return guild.getTextChannelById(getField(Servers.hallOfFameChannel, guild) ?: return null)
+    }
+
+    fun getHallOfFameEnabled(guild: Guild): Boolean {
+        return getField(Servers.hallOfFameEnabled, guild) ?: return false
+    }
+
+    fun getHallOfFameThreshold(guild: Guild): Int {
+        return getField(Servers.hallOfFameThreshold, guild) ?: return 5
+    }
+
+    fun getHallOfFameEmoji(guild: Guild): String? {
+        return getField(Servers.hallOfFameEmoji, guild)
+    }
+
+    fun <T>getField(field: Column<T>, guild: Guild): T? {
+        var output: T? = null
         transaction {
             for (server in Servers.select { Servers.id.eq(guild.id) }) {
-                prefix = server[Servers.prefix]
+                output = server[field]
                 break
             }
         }
-        return prefix
+        return output
+    }
+
+    fun <T>setField(field: Column<T>, guild: Guild, value: T) {
+        transaction {
+            Servers.update({ Servers.id.eq(guild.id) }) {
+                it[field] = value
+            }
+        }
     }
 
     private const val messageSendXp = 5L
@@ -127,24 +167,55 @@ object DB {
             }
         }
     }
+
+    fun getServerSettings(): List<Column<*>> {
+        return settings.map { it.column }
+    }
+
+    fun getAllSettings(guild: Guild): List<Pair<ServerSetting<*>, *>> {
+        val settings = mutableListOf<Pair<ServerSetting<*>, *>>()
+        transaction {
+            for (server in Servers.select { Servers.id.eq(guild.id) }) {
+                for (setting in DB.settings) {
+                    settings.add(Pair(setting, server[setting.column]))
+                }
+            }
+        }
+        return settings.toList()
+    }
+}
+
+class ServerSetting<T>(val column: Column<T>, val name: String, private val validator: (inp: String, guild: Guild) -> Boolean, private val converter: (inp: String, guild: Guild) -> T) {
+
+    fun get(guild: Guild): T? {
+        return DB.getField(column, guild)
+    }
+
+    fun set(value: String, guild: Guild) {
+        if (validator(value, guild)) {
+            DB.setField(column, guild, converter(value, guild))
+        } else {
+            throw RuntimeException("Invalid value \"$value\" for setting \"$name\"")
+        }
+    }
 }
 
 fun main() {
     // THIS WILL CLEAR THE TABLE
     Database.connect("jdbc:sqlite:users.db")
-    transaction {
-        SchemaUtils.drop(Users, Servers)
-        SchemaUtils.create(Users, Servers)
-
-        Servers.insert {
-            it[id] = "709560490199744593"
-            it[hallOfFameEnabled] = true
-            it[hallOfFameThreshold] = 3
-            it[hallOfFameEmoji] = ":linuxPowered:"
-            it[hallOfFameChannel] = "716131138468446348"
-            it[prefix] = ";"
-        }
-    }
+//    transaction {
+//        SchemaUtils.drop(Users, Servers)
+//        SchemaUtils.create(Users, Servers)
+//
+//        Servers.insert {
+//            it[id] = "709560490199744593"
+//            it[hallOfFameEnabled] = true
+//            it[hallOfFameThreshold] = 2
+//            it[hallOfFameEmoji] = "linuxPowered"
+//            it[hallOfFameChannel] = "716131138468446348"
+//            it[prefix] = ";"
+//        }
+//    }
 }
 
 object Users : Table() {
