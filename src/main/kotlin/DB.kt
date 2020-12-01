@@ -20,7 +20,8 @@ object DB {
         settings.add(ServerSetting(Servers.hallOfFameEmoji, "hallOfFameEmoji", { inp, guild -> guild.getEmotesByName(inp, true).isNotEmpty() }, { inp, _ -> inp }))
         settings.add(ServerSetting(Servers.hallOfFameThreshold, "hallOfFameThreshold", { inp, _ -> greaterThan(inp.toIntOrNull(), 0) }, { inp, _ -> inp.toInt() }))
         settings.add(ServerSetting(Servers.hallOfFameEnabled, "hallOfFameEnabled", { inp, _ -> trueStrings.contains(inp.toLowerCase()) || falseStrings.contains(inp.toLowerCase()) }, { inp, _ -> trueStrings.contains(inp.toLowerCase()) }))
-        settings.add(ServerSetting(Servers.hallOfFameChannel, "hallOfFameChannel", { inp, guild -> guild.getTextChannelById(inp.replace("<#", "").replace(">", "")) != null }, { inp, _ -> inp.replace("<*", "").replace(">", "") }))
+        settings.add(ServerSetting(Servers.hallOfFameChannel, "hallOfFameChannel", { inp, guild -> guild.getTextChannelById(inp.replace("<#", "").replace(">", "")) != null }, { inp, _ -> inp.replace("<#", "").replace(">", "") }))
+        settings.add(ServerSetting(Servers.levelChannel, "levelChannel", { inp, guild -> guild.getTextChannelById(inp.replace("<#", "").replace(">", "")) != null }, { inp, _ -> inp.replace("<#", "").replace(">", "") }))
         settings.add(ServerSetting(Servers.prefix, "prefix", { inp, _ -> inp.length < 5 }, { inp, _ -> inp }))
     }
 
@@ -94,6 +95,10 @@ object DB {
         return getField(Servers.hallOfFameEmoji, guild)
     }
 
+    fun getLevelChannel(guild: Guild): TextChannel? {
+        return guild.getTextChannelById(getField(Servers.levelChannel, guild) ?: return null)
+    }
+
     fun <T>getField(field: Column<T>, guild: Guild): T? {
         var output: T? = null
         transaction {
@@ -143,7 +148,8 @@ object DB {
         }
 
         if (startLevel < endLevel) {
-            TextResponse("${author.asMention} has leveled up to lvl $endLevel").send(channel)
+            val levelChannel = getLevelChannel(channel.guild) ?: channel
+            TextResponse("${author.asMention} has leveled up to lvl $endLevel").send(levelChannel)
         }
     }
 
@@ -202,20 +208,7 @@ class ServerSetting<T>(val column: Column<T>, val name: String, private val vali
 
 fun main() {
     // THIS WILL CLEAR THE TABLE
-    Database.connect("jdbc:sqlite:users.db")
-//    transaction {
-//        SchemaUtils.drop(Users, Servers)
-//        SchemaUtils.create(Users, Servers)
-//
-//        Servers.insert {
-//            it[id] = "709560490199744593"
-//            it[hallOfFameEnabled] = true
-//            it[hallOfFameThreshold] = 2
-//            it[hallOfFameEmoji] = "linuxPowered"
-//            it[hallOfFameChannel] = "716131138468446348"
-//            it[prefix] = ";"
-//        }
-//    }
+//    Database.connect("jdbc:sqlite:users.db")
 }
 
 object Users : Table() {
@@ -230,5 +223,6 @@ object Servers : Table() {
     val hallOfFameThreshold = integer("hallOfFameThreshold")
     val hallOfFameEmoji = text("hallOfFameEmoji")
     val hallOfFameChannel = text("hallOfFameChannel")
+    val levelChannel = text("levelChannel")
     val prefix = varchar("prefix", 10)
 }

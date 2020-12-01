@@ -20,6 +20,7 @@ object Main {
         handler.commands.add(Level())
         handler.commands.add(Xp())
         handler.commands.add(Setting())
+        handler.commands.add(Reddit())
         val token = File("token").readText()
         val builder = JDABuilder.createDefault(token)
         builder.setActivity(Activity.watching("for sudo help"))
